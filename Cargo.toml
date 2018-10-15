@@ -1,0 +1,7 @@
+[package]
+name = "physics-2d"
+version = "0.0.0"
+authors = ["Jak Rowan <jak@rowan.li>"]
+
+[dependencies]
+amethyst = "0.8.0"
