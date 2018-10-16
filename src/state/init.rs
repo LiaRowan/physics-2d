@@ -19,6 +19,9 @@ use amethyst::{
 
 use components::Player;
 
+pub enum WallSize {
+    Tall,
+}
 
 pub struct Init;
 
@@ -37,8 +40,16 @@ impl<'a, 'b> State<GameData<'a, 'b>> for Init {
 
         state.world.register::<Player>();
 
-        initialize_camera(state.world);
+        make_wall(
+            state.world,
+            spritesheet.clone(),
+            WallSize::Tall,
+            (ARENA_WIDTH / 5., ARENA_WIDTH / 2.)
+        );
+
         initialize_player(state.world, spritesheet);
+
+        initialize_camera(state.world);
     }
 }
 
@@ -81,8 +92,7 @@ fn initialize_player(world: &mut World, spritesheet: TextureHandle) {
         bottom: SPRITE_UNIT,
     };
     let mut transform = Transform::default();
-    transform.translation[0] = ARENA_WIDTH / 2.;
-    transform.translation[1] = ARENA_HEIGHT / 2.;
+    transform.set_position(Vector3::new(ARENA_WIDTH / 2., ARENA_HEIGHT / 2., 0.));
 
     world.create_entity()
         .with_sprite(&sprite, spritesheet, SPRITESHEET_SIZE)
@@ -90,5 +100,31 @@ fn initialize_player(world: &mut World, spritesheet: TextureHandle) {
         .with(GlobalTransform::default())
         .with(transform)
         .with(Player::new())
+        .build();
+}
+
+fn make_wall(
+    world: &mut World,
+    spritesheet: TextureHandle,
+    size: WallSize,
+    (x, y): (f32, f32)
+) {
+    let sprite = match size {
+        WallSize::Tall => Sprite {
+            left: SPRITE_UNIT,
+            right: SPRITE_UNIT * 2.,
+            top: 0.,
+            bottom: SPRITE_UNIT * 2.,
+        },
+    };
+
+    let mut transform = Transform::default();
+    transform.set_position(Vector3::new(x, y, 0.));
+
+    world.create_entity()
+        .with_sprite(&sprite, spritesheet, SPRITESHEET_SIZE)
+        .expect("Failed to add sprite render on wall")
+        .with(GlobalTransform::default())
+        .with(transform)
         .build();
 }
