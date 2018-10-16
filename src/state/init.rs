@@ -17,7 +17,7 @@ use amethyst::{
     },
 };
 
-use components::Player;
+use components::{ BoxCollider, Player };
 
 pub enum WallSize {
     Tall,
@@ -38,6 +38,7 @@ impl<'a, 'b> State<GameData<'a, 'b>> for Init {
     fn on_start(&mut self, state: StateData<GameData>) {
         let spritesheet = get_spritesheet(state.world);
 
+        state.world.register::<BoxCollider>();
         state.world.register::<Player>();
 
         make_wall(
@@ -100,6 +101,14 @@ fn initialize_player(world: &mut World, spritesheet: TextureHandle) {
         .with(GlobalTransform::default())
         .with(transform)
         .with(Player::new())
+        .with(BoxCollider{
+            id: 1,
+            immobile: false,
+            left: SPRITE_UNIT / -2.,
+            right: SPRITE_UNIT / 2.,
+            top: SPRITE_UNIT / 2.,
+            bottom: SPRITE_UNIT / -2.,
+        })
         .build();
 }
 
@@ -118,6 +127,17 @@ fn make_wall(
         },
     };
 
+    let collision = match size {
+        WallSize::Tall => BoxCollider{
+            id: 2,
+            immobile: true,
+            left: SPRITE_UNIT / -2.,
+            right: SPRITE_UNIT / 2.,
+            top: SPRITE_UNIT,
+            bottom: -SPRITE_UNIT,
+        },
+    };
+
     let mut transform = Transform::default();
     transform.set_position(Vector3::new(x, y, 0.));
 
@@ -126,5 +146,6 @@ fn make_wall(
         .expect("Failed to add sprite render on wall")
         .with(GlobalTransform::default())
         .with(transform)
+        .with(collision)
         .build();
 }

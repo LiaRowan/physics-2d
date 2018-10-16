@@ -45,6 +45,11 @@ fn main() -> amethyst::Result<()> {
             systems::PlayerMovement,
             "player_movement_system",
             &["input_system"],
+        )
+        .with(
+            systems::Collision,
+            "collision_system",
+            &[],
         );
 
     let mut game = Application::build("./", Init)?
