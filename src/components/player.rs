@@ -9,7 +9,7 @@ pub struct Player {
 
 impl Player {
     pub fn new() -> Player {
-        Player { walk_speed: 35. }
+        Player { walk_speed: 55. }
     }
 }
 

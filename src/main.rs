@@ -5,7 +5,10 @@ mod components;
 mod state;
 
 use amethyst::{
-    core::transform::TransformBundle,
+    core::{
+        frame_limiter::FrameRateLimitStrategy,
+        transform::TransformBundle,
+    },
     input::InputBundle,
     prelude::{ Application, Config, GameDataBuilder },
     renderer::{
@@ -17,6 +20,7 @@ use amethyst::{
         Stage,
     },
 };
+use std::time::Duration;
 
 use state::Init;
 
@@ -43,8 +47,13 @@ fn main() -> amethyst::Result<()> {
             &["input_system"],
         );
 
-    Application::new("./", Init, game_data)?
-        .run();
+    let mut game = Application::build("./", Init)?
+        .with_frame_limit(
+            FrameRateLimitStrategy::SleepAndYield(Duration::from_millis(2)),
+            144,
+        )
+        .build(game_data)?;
+    game.run();
 
     Ok(())
 }
