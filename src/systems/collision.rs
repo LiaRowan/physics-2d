@@ -1,41 +1,37 @@
 use amethyst::{
     core::transform::Transform,
-    ecs::prelude::{ Join, ReadStorage, System },
+    ecs::prelude::{ Join, ReadStorage, System, WriteStorage },
 };
 
-use components::box_collider::{ BoxBounds, BoxCollider };
+use components::box_collider::BoxCollider;
 
 pub struct Collision;
 
 impl<'s> System<'s> for Collision {
     type SystemData = (
         ReadStorage<'s, Transform>,
-        ReadStorage<'s, BoxCollider>,
+        WriteStorage<'s, BoxCollider>,
     );
 
-    fn run(&mut self, (locals, box_cs): Self::SystemData) {
-        let mobile_colliders = (&locals, &box_cs).join()
-            .filter(|(_, collider)| !collider.immobile);
+    fn run(&mut self, (locals, mut colliders): Self::SystemData) {
+        (&locals, &mut colliders).join()
+            .for_each(|(local, collider)| collider.update_locals(local));
 
-        for (local, box_c) in mobile_colliders {
-            let others = (&locals, &box_cs).join()
-                .filter(|(_, other)| box_c.id != other.id);
-
-            for (other_local, other_box_c) in others {
-                let a_bounds = box_c.to_bounds(&local);
-                let b_bounds = other_box_c.to_bounds(&other_local);
-
-                if has_collision(a_bounds, b_bounds) {
-                    println!("collision between {} and {}", box_c.id, other_box_c.id);
-                }
-            }
-        }
+        &colliders.join()
+            .filter(|collider| !collider.immobile)
+            .for_each(|collider| {
+                check_collisions(collider, &colliders)
+            });
     }
 }
 
-fn has_collision(a: BoxBounds, b: BoxBounds) -> bool {
-    a.left <= b.right &&
-    a.right >= b.left &&
-    a.bottom <= b.top &&
-    a.top >= b.bottom
+fn check_collisions(collider: &BoxCollider, all_colliders: &WriteStorage<BoxCollider>) {
+    all_colliders.join()
+        .filter(|other| other.id != collider.id)
+        .for_each(|other_collider| {
+            if collider.has_collision(other_collider) {
+                println!("collision between {} and {}!", collider.id, other_collider.id);
+            }
+        });
 }
+

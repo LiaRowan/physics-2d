@@ -3,33 +3,61 @@ use amethyst::{
     ecs::prelude::{ Component, DenseVecStorage },
 };
 
-pub struct BoxBounds {
-    pub left: f32,
-    pub right: f32,
-    pub top: f32,
-    pub bottom: f32,
+struct BoxBounds {
+    left: f32,
+    right: f32,
+    top: f32,
+    bottom: f32,
 }
 
 pub struct BoxCollider {
     pub id: i32,
     pub immobile: bool,
-    pub left: f32,
-    pub right: f32,
-    pub top: f32,
-    pub bottom: f32,
+    bounds: BoxBounds,
+    current_local: Option<Transform>,
+    prev_local: Option<Transform>,
 }
 
 impl BoxCollider {
-    pub fn to_bounds(&self, local: &Transform) -> BoxBounds {
-        let x = local.translation[0];
-        let y = local.translation[1];
+    pub fn new(id: i32, immobile: bool, (top, left, right, bottom): (f32, f32, f32, f32))
+    -> BoxCollider {
+        let bounds = BoxBounds { top, left, right, bottom };
 
-        BoxBounds {
-            left: x + self.left,
-            right: x + self.right,
-            top: y + self.top,
-            bottom: y + self.bottom,
+        BoxCollider { id, immobile, bounds, current_local: None, prev_local: None }
+    }
+
+    fn local_bounds(&self) -> Option<BoxBounds> {
+        return match &self.current_local {
+            None => None,
+            Some(local) => {
+                let x = local.translation[0];
+                let y = local.translation[1];
+
+                Some(BoxBounds {
+                    left: x + self.bounds.left,
+                    right: x + self.bounds.right,
+                    top: y + self.bounds.top,
+                    bottom: y + self.bounds.bottom,
+                })
+            },
         }
+    }
+
+    pub fn has_collision(&self, other: &BoxCollider) -> bool {
+        return match (self.local_bounds(), other.local_bounds()) {
+            (Some(bounds), Some(other_bounds)) => {
+                bounds.left <= other_bounds.right &&
+                bounds.right >= other_bounds.left &&
+                bounds.bottom <= other_bounds.top &&
+                bounds.top >= other_bounds.bottom
+            },
+            _ => false,
+        }
+    }
+
+    pub fn update_locals(&mut self, locals: &Transform) {
+        self.prev_local = self.current_local.clone();
+        self.current_local = Some(locals.clone());
     }
 }
 

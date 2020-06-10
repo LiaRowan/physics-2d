@@ -20,7 +20,9 @@ use amethyst::{
 use components::{ BoxCollider, Player };
 
 pub enum WallSize {
+    // Small,
     Tall,
+    // Wide,
 }
 
 pub struct Init;
@@ -101,14 +103,12 @@ fn initialize_player(world: &mut World, spritesheet: TextureHandle) {
         .with(GlobalTransform::default())
         .with(transform)
         .with(Player::new())
-        .with(BoxCollider{
-            id: 1,
-            immobile: false,
-            left: SPRITE_UNIT / -2.,
-            right: SPRITE_UNIT / 2.,
-            top: SPRITE_UNIT / 2.,
-            bottom: SPRITE_UNIT / -2.,
-        })
+        .with(BoxCollider::new(1, false, (
+            SPRITE_UNIT / -2.,
+            SPRITE_UNIT / 2.,
+            SPRITE_UNIT / 2.,
+            SPRITE_UNIT / -2.,
+        )))
         .build();
 }
 
@@ -119,23 +119,33 @@ fn make_wall(
     (x, y): (f32, f32)
 ) {
     let sprite = match size {
+        // WallSize::Small => Sprite {
+        //     left: 0.,
+        //     right: SPRITE_UNIT,
+        //     top: SPRITE_UNIT,
+        //     bottom: SPRITE_UNIT * 2.,
+        // },
         WallSize::Tall => Sprite {
             left: SPRITE_UNIT,
             right: SPRITE_UNIT * 2.,
             top: 0.,
             bottom: SPRITE_UNIT * 2.,
         },
+        // WallSize::Wide => Sprite {
+        //     left: SPRITE_UNIT * 2.,
+        //     right: SPRITE_UNIT * 3.,
+        //     top: 0.,
+        //     bottom: SPRITE_UNIT,
+        // },
     };
 
     let collision = match size {
-        WallSize::Tall => BoxCollider{
-            id: 2,
-            immobile: true,
-            left: SPRITE_UNIT / -2.,
-            right: SPRITE_UNIT / 2.,
-            top: SPRITE_UNIT,
-            bottom: -SPRITE_UNIT,
-        },
+        WallSize::Tall => BoxCollider::new(2, true, (
+            SPRITE_UNIT / -2.,
+            SPRITE_UNIT / 2.,
+            SPRITE_UNIT,
+            -SPRITE_UNIT,
+        )),
     };
 
     let mut transform = Transform::default();
