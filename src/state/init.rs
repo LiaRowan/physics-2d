@@ -17,6 +17,8 @@ use amethyst::{
     },
 };
 
+use components::Player;
+
 
 pub struct Init;
 
@@ -32,6 +34,8 @@ impl<'a, 'b> State<GameData<'a, 'b>> for Init {
 
     fn on_start(&mut self, state: StateData<GameData>) {
         let spritesheet = get_spritesheet(state.world);
+
+        state.world.register::<Player>();
 
         initialize_camera(state.world);
         initialize_player(state.world, spritesheet);
@@ -85,5 +89,6 @@ fn initialize_player(world: &mut World, spritesheet: TextureHandle) {
         .expect("Failed to add sprite render on player")
         .with(GlobalTransform::default())
         .with(transform)
+        .with(Player::new())
         .build();
 }
